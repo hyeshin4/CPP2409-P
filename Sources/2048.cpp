@@ -11,7 +11,7 @@ using namespace std;
 
 // 전역변수들 정의
 int score = 0;         // Score
-const int numCell = 6; // 보드판의 가로 세로 길이 (기본 4x4)
+const int numCell = 4; // 보드판의 가로 세로 길이 (기본 4x4)
 int board[numCell][numCell] = {0}; // 게임판 초기화
 
 // 사용될 함수들
@@ -23,7 +23,8 @@ void check_game_over(void); // 세부 기능 6 (게임 승리)
 int getch(void)
 {
     // termios는 비차단 입력을 설정하여 키 입력이 발생하는 즉시 프로그램이 이를 처리함
-    struct termios oldattr, newattr; // oldattr는 기존의 터미널 속성을 저장하고, newattr는 변경된 속성을 설정하기 위해 사용
+    struct termios oldattr, newattr; 
+    // oldattr는 기존의 터미널 속성을 저장하고, newattr는 변경된 속성을 설정하기 위해 사용
     int ch;                          // 입력받은 한 글자를 저장할 변수 ch를 선언
     tcgetattr(STDIN_FILENO, &oldattr);
     // 현재 터미널 속성을 oldattr에 저장. STDIN_FILENO는 표준 입력 파일 디스크립터(일반적으로 키보드 입력)
@@ -254,15 +255,23 @@ void check_game_over(void)
 
     for (i = 0; i < numCell; i++)
         for (j = 0; j < numCell; j++)
+            if (board[i][j] > 10000){ // 10000을 초과하는 경우
+                cout << "10000점을 돌파했습니다. 게임을 종료합니다.";
+                exit(0); }
+
+    for (i = 0; i < numCell; i++)
+        for (j = 0; j < numCell; j++)
             if (board[i][j] == 0) // 빈 칸이 있는 경우 게임진행
                 return; 
 
     for (i = 0; i < numCell-1; i++)
         for (j = 0; j < numCell-1; j++)
-            if (board[i][j] == board[i + 1][j] || board[i][j] == board[i][j + 1]) // 합칠 수 있는 수가 있는 경우 재개
+            if (board[i][j] == board[i + 1][j] || board[i][j] == board[i][j + 1]) 
+            // 합칠 수 있는 수가 있는 경우 재개
                 return;
 
-// 만약 위의 for문에 범위를 4미만으로 할 경우 board[4][j]라는 존재하지 않는 정보를 비교하게 되기 때문에 3행 비교와 3열 비교는 각 각 분리해야 함
+// 만약 위의 for문에 범위를 4미만으로 할 경우 board[4][j]라는 존재하지 않는 정보를 비교하게 됨
+// 때문에 3행 비교와 3열 비교는 각 각 분리해야 함
     for (i = 0; i < numCell-1; i++)
         if (board[i][numCell-1] == board[i + 1][numCell-1]) //가장 오른쪽 열을 검사
             return;
@@ -271,13 +280,9 @@ void check_game_over(void)
         if (board[numCell-1][j] == board[numCell-1][j + 1]) //가장 아래쪽 행을 검사
             return;
 
-    for (i = 0; i < numCell; i++)
-        for (j = 0; j < numCell; j++)
-            if (board[i][j] > 10000) // 10000을 초과하는 경우
-                cout << "10000점을 돌파했습니다. 게임을 종료합니다.";
-                exit(0); 
+
 
 // 위 4가지 경우를 모두 충족시키지 못한 경우
-    printf("Game Over..\n");
+    cout << "Game Over..";
     exit(0);
 }
