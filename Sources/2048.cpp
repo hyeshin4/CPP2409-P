@@ -12,7 +12,30 @@ using namespace std;
 // 전역변수들 정의
 int score = 0;         // Score
 const int numCell = 4; // 보드판의 가로 세로 길이 (기본 4x4)
-int board[numCell][numCell] = {0}; // 게임판 초기화
+int board[numCell][numCell] = {}; // 게임판 초기화
+
+// ANSI 기반 화면 관리
+void clearScreen() {
+    cout << "\033[2J\033[1;1H";
+}
+
+// 메뉴 표시 함수
+void displayMenu(const string modes[], int modeCount, int selected) {
+    clearScreen();
+    cout << "==========================" << endl;
+    cout << "        게임 모드         " << endl;
+    cout << "==========================" << endl;
+    for (int i = 0; i < modeCount; ++i) {
+        if (i == selected) {
+            cout << "> \033[1;32m" << modes[i] << "\033[0m" << endl;
+        } else {
+            cout << "  " << modes[i] << endl;
+        }
+    }
+    cout << "==========================" << endl;
+    cout << "W: 위로, S: 아래로, 스페이스: 선택" << endl;
+}
+
 
 // 사용될 함수들
 void new_num(void); // 세부 기능 2 (랜덤 2의배수 숫자 생성)
@@ -20,27 +43,21 @@ void draw(void); // 세부 기능 1 (3x3 게임판 만들기)
 void check_game_over(void); // 세부 기능 6 (게임 승리)
 
 // 세부 기능 4 (사용자 이동기능-입력받기)
-int getch(void)
-{
-    // termios는 비차단 입력을 설정하여 키 입력이 발생하는 즉시 프로그램이 이를 처리함
-    struct termios oldattr, newattr; 
-    // oldattr는 기존의 터미널 속성을 저장하고, newattr는 변경된 속성을 설정하기 위해 사용
-    int ch;                          // 입력받은 한 글자를 저장할 변수 ch를 선언
-    tcgetattr(STDIN_FILENO, &oldattr);
-    // 현재 터미널 속성을 oldattr에 저장. STDIN_FILENO는 표준 입력 파일 디스크립터(일반적으로 키보드 입력)
-    newattr = oldattr;
-    newattr.c_lflag &= ~(ICANON | ECHO); // newattr의 c_lflag 필드를 변경하여 입력 모드를 수정.
-    // ICANON 비트를 꺼서 비정규 모드로 변경. Enter를 누르지 않아도 키 입력이 즉시 프로그램으로 전달됨
-    // ECHO 비트를 꺼서 에코 기능을 비활성화. 입력한 문자가 화면에 표시되지 않음
-    tcsetattr(STDIN_FILENO, TCSANOW, &newattr);
-    // 새로운 설정(newattr)을 터미널에 적용합니다. TCSANOW는 즉시 속성을 변경
-    ch = getchar(); // 한 문자를 입력받아 ch 변수에 저장
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldattr);
-    // 원래 터미널 속성(oldattr)을 복원, 프로그램이 끝나고 나서 터미널에 영향을 주지 않도록 함
-    return ch;
+// 단일 키 입력 받기 (getch 대체)
+char getInput() {
+    char buf = 0;
+    struct termios oldAttr, newAttr;
+    tcgetattr(STDIN_FILENO, &oldAttr);
+    newAttr = oldAttr;
+    newAttr.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newAttr);
+    buf = getchar();
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldAttr);
+    return buf;
 }
 
-int main()
+// 2048 게임의 메인 루프
+void run2048() 
 {
     // 게임을 진행하는 데 필요한 변수 선언
     int key;     // 사용자 입력 변수
@@ -55,7 +72,7 @@ int main()
     // 게임 시작
     while (1)
     {
-        key = getch(); // 사용자 입력을 key에 저장
+        key = getInput(); // 사용자 입력을 key에 저장
         act = 0;       
 
         // 세부 기능 3 (사용자 입력에 따른 블록 합체 및 이동 기능)
@@ -183,6 +200,54 @@ int main()
             check_game_over(); // 게임 오버 상태 확인
         }
     }
+}
+
+// 메인 함수
+int main() {
+    const int modeCount = 4;
+
+    string modes[modeCount] = { "모드 1: 2048 게임", "모드 2: 아이템 모드", "모드 3: 목표달성 모드", "모드 4: 설명서" };
+    
+    int selected = 0; // 선택된 모드
+
+    while (true) {
+        displayMenu(modes, modeCount, selected);
+        char input = getInput();
+
+        if (input == 'w' || input == 'W') {
+            selected = (selected - 1 + modeCount) % modeCount;
+        } else if (input == 's' || input == 'S') {
+            selected = (selected + 1) % modeCount;
+        } else if (input == ' ') {
+            if (selected == 0) {
+                clearScreen();
+                cout << "모드 1: 2048 게임을 시작합니다!" << endl;
+                run2048(); // 2048 게임 실행
+            } 
+            else if (selected == 3) {
+                clearScreen();
+                cout << "1. 목표" << endl;
+                cout << "-같은 숫자를 합쳐 더 높은 숫자를 생성하며, 최종적으로 2048을 만들면 승리합니다." << endl << endl;
+                cout << "2. 기본 규칙" << endl;
+                cout << "-한 번의 움직임마다 보드에 새로운 숫자 2 또는 4가 랜덤 위치에 나타납니다." << endl;
+                cout << "-같은 숫자가 충돌하면 합쳐져 두 배가 됩니다 (예: 2 + 2 = 4, 4 + 4 = 8)." << endl << endl;
+                cout << "3. 게임 방법" << endl;
+                cout << "-WSAD로 위/아래/왼쪽/오른쪽으로 모든 숫자를 이동시킬 수 있습니다." << endl;
+                cout << "-숫자는 선택한 방향으로 이동하며, 이동 가능한 가장 먼 칸까지 이동합니다." << endl;
+                cout << "-빈칸이 없거나 숫자를 합칠 수 없으면 움직일 수 없습니다." << endl;
+                // 다음 시간에 뒤로가기 또는 시간 딜레이 기능 만들기
+                continue;
+            }
+            
+            else {
+                clearScreen();
+                cout << modes[selected] << "은(는) 아직 구현되지 않았습니다!" << endl;
+                break;
+            }
+        }
+    }
+
+    return 0;
 }
 
 // 함수 구체화
