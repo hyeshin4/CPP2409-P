@@ -39,6 +39,7 @@ void displayMenu(const string modes[], int modeCount, int selected) {
 
 // 사용될 함수들
 void new_num(void); // 세부 기능 2 (랜덤 2의배수 숫자 생성)
+void new_num_or_item(void);
 void draw(void); // 세부 기능 1 (3x3 게임판 만들기)
 void check_game_over(void); // 세부 기능 6 (게임 승리)
 
@@ -67,6 +68,7 @@ void run2048()
     srand(time(NULL)); // 난수생성 시드값
     new_num();         // 초기값 2개 생성
     new_num();
+    
     draw(); // 임의의 수 2개 생성 후 게임판 그리기
 
     // 게임 시작
@@ -195,7 +197,7 @@ void run2048()
         // 동작 발생
         if (act > 0)
         {
-            new_num();         // 새로운 숫자 추가
+            new_num_or_item();
             draw();            // 보드 출력
             check_game_over(); // 게임 오버 상태 확인
         }
@@ -275,6 +277,33 @@ void new_num(void)
     // rand() % 100 < 80 조건을 사용해 80% 확률로 2를, 20% 확률로 4를 생성하여 선택된 빈 칸에 대입
 }
 
+void new_num_or_item() {
+    int i, j, cnt = 0;
+    int *p0[numCell * numCell] = {0};
+
+    for (i = 0; i < numCell; i++) {
+        for (j = 0; j < numCell; j++) {
+            if (board[i][j] == 0) {
+                p0[cnt] = &board[i][j];
+                cnt++;
+            }
+        }
+    }
+
+    if (cnt == 0) return; // 빈 칸이 없으면 추가하지 않음
+
+    int randIndex = rand() % cnt;
+    int randChance = rand() % 100;
+
+    if (randChance < 10) {
+        *p0[randIndex] = -1; // 10% 확률로 점프 아이템 (J)
+    } else if (randChance < 15) {
+        *p0[randIndex] = -2; // 5% 확률로 폭발 블럭 (B)
+    } else {
+        *p0[randIndex] = (rand() % 100 < 80) ? 2 : 4; // 숫자 추가
+    }
+}
+
 // 세부 기능 1 (3x3 게임판 만들기)
 void draw(void)
 {
@@ -287,21 +316,19 @@ void draw(void)
             cout << "----|";
         }
         cout << "----" << endl;
-        for (int j = 0; j < numCell; j++)
-        {
-            cout << board[i][j];
-            if (j == numCell - 1)
-            {
-                break;
+        for (int j = 0; j < numCell; j++) {
+            if (board[i][j] == -1) {
+                cout << " J  |";
+            } else if (board[i][j] == -2) {
+                cout << " B  |";
+            } else {
+                cout << board[i][j];
+                if (j == numCell - 1) break;
+                if (board[i][j] < 10) cout << "   |";
+                else if (board[i][j] < 100) cout << "  |";
+                else if (board[i][j] < 1000) cout << " |";
+                else if (board[i][j] < 10000) cout << "|";
             }
-            if (board[i][j] < 10){
-                cout << "   |";}
-            else if (board[i][j] < 100){
-                cout << "  |";}
-            else if (board[i][j] < 1000){
-                cout << " |";}
-            else if (board[i][j] < 10000){
-                cout << "|";}
         }
         cout << endl;
     }
