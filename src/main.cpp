@@ -16,7 +16,7 @@ int main()
     while (true)
     {
         displayMenu(modes, modeCount, selected);
-        char input = getInput();
+        char input = GetInput();
 
         if (input == 'w' || input == 'W')
         {
@@ -32,7 +32,7 @@ int main()
             {
                 clearScreen();
                 cout << "모드 1: 2048 게임을 시작합니다!" << endl;
-                run2048();
+                Run2048();
             }
             else if (selected == 3)
             {

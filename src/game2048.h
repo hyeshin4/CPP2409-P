@@ -20,12 +20,12 @@ extern int board[4][4];   // 게임판
 // 공용 함수 선언
 void clearScreen();
 void displayMenu(const string modes[], int modeCount, int selected);
-char getInput();
-void run2048();
+char GetInput();
+void Run2048();
 
 // 2048 게임 관련 함수
-void draw();
-void new_num();
-void new_num_or_item();
-void check_game_over();
-void handleItem(int &current, int &next, int i, int j, int dx, int dy, int act);
+void Draw();
+void NewNum();
+void NewNumOrItem();
+void CheckGameOver();
+void HandleItem(int &current, int &next, int i, int j, int dx, int dy, int act);

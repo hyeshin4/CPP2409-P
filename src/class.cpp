@@ -6,7 +6,7 @@ void clearScreen()
 {
     cout << "\033[2J\033[1;1H";
 }
-void run2048()
+void Run2048()
 {
     // 게임을 진행하는 데 필요한 변수 선언
     int key;     // 사용자 입력 변수
@@ -14,15 +14,15 @@ void run2048()
     int i, j, r; // 루프 변수
 
     srand(time(NULL)); // 난수생성 시드값
-    new_num();         // 초기값 2개 생성
-    new_num();
+    NewNum();         // 초기값 2개 생성
+    NewNum();
 
-    draw(); // 임의의 수 2개 생성 후 게임판 그리기
+    Draw(); // 임의의 수 2개 생성 후 게임판 그리기
 
     // 게임 시작
     while (1)
     {
-        key = getInput(); // 사용자 입력을 key에 저장
+        key = GetInput(); // 사용자 입력을 key에 저장
         act = 0;
 
         // 세부 기능 3 (사용자 입력에 따른 블록 합체 및 이동 기능)
@@ -45,7 +45,7 @@ void run2048()
                         }
                         if (k > 0)
                         { // 아이템 및 합체 처리
-                            handleItem(board[i][k], board[i][k - 1], i, k, 0, -1, act);
+                            HandleItem(board[i][k], board[i][k - 1], i, k, 0, -1, act);
                             if (board[i][k - 1] == board[i][k])
                             { // 합체
                                 board[i][k - 1] *= 2;
@@ -76,7 +76,7 @@ void run2048()
                         }
                         if (k < numCell - 1)
                         { // 아이템 및 합체 처리
-                            handleItem(board[i][k], board[i][k + 1], i, k, 0, 1, act);
+                            HandleItem(board[i][k], board[i][k + 1], i, k, 0, 1, act);
                             if (board[i][k + 1] == board[i][k])
                             { // 합체
                                 board[i][k + 1] *= 2;
@@ -107,7 +107,7 @@ void run2048()
                         }
                         if (k > 0)
                         { // 아이템 및 합체 처리
-                            handleItem(board[k][j], board[k - 1][j], k, j, -1, 0, act);
+                            HandleItem(board[k][j], board[k - 1][j], k, j, -1, 0, act);
                             if (board[k - 1][j] == board[k][j])
                             { // 합체
                                 board[k - 1][j] *= 2;
@@ -138,7 +138,7 @@ void run2048()
                         }
                         if (k < numCell - 1)
                         { // 아이템 및 합체 처리
-                            handleItem(board[k][j], board[k + 1][j], k, j, 1, 0, act);
+                            HandleItem(board[k][j], board[k + 1][j], k, j, 1, 0, act);
                             if (board[k + 1][j] == board[k][j])
                             { // 합체
                                 board[k + 1][j] *= 2;
@@ -164,9 +164,9 @@ void run2048()
         // 동작 발생
         if (act > 0)
         {
-            new_num_or_item();
-            draw();            // 보드 출력
-            check_game_over(); // 게임 오버 상태 확인
+            NewNumOrItem();
+            Draw();            // 보드 출력
+            CheckGameOver(); // 게임 오버 상태 확인
         }
     }
 }
@@ -192,7 +192,7 @@ void displayMenu(const string modes[], int modeCount, int selected)
     cout << "W: 위로, S: 아래로, 스페이스: 선택" << endl;
 }
 
-char getInput()
+char GetInput()
 {
     char buf = 0;
     struct termios oldAttr, newAttr;
@@ -205,7 +205,7 @@ char getInput()
     return buf;
 }
 
-void draw()
+void Draw()
 {
     system("clear");
     for (int i = 0; i < numCell; i++)
@@ -250,7 +250,7 @@ void draw()
     printf("\nScore : %d \n", score);
 }
 
-void new_num()
+void NewNum()
 {
     int cnt = 0;
     int *p0[numCell * numCell] = {0};
@@ -270,7 +270,7 @@ void new_num()
     *p0[rand() % cnt] = (rand() % 100 < 80) ? 2 : 4;
 }
 
-void new_num_or_item()
+void NewNumOrItem()
 {
     int i, j, cnt = 0;
     int *p0[numCell * numCell] = {0};
@@ -307,7 +307,7 @@ void new_num_or_item()
     }
 }
 
-void check_game_over()
+void CheckGameOver()
 {
     int i, j;
 
@@ -345,7 +345,7 @@ void check_game_over()
     exit(0);
 }
 
-void handleItem(int &current, int &next, int i, int j, int dx, int dy, int act)
+void HandleItem(int &current, int &next, int i, int j, int dx, int dy, int act)
 {
     if (next == -1)
     { // 점프 아이템
