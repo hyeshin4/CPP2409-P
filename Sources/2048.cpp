@@ -480,6 +480,7 @@ void HandleItem(int &current, int &next, int i, int j, int dx, int dy, int act)
     { // 점프 아이템
         int nx = i + 2 * dx;
         int ny = j + 2 * dy;
+        // 바로 옆 칸이 아닌 두 칸 떨어진 대상
         if (nx >= 0 && nx < numCell && ny >= 0 && ny < numCell && board[nx][ny] == current)
         {
             board[nx][ny] *= 2;
