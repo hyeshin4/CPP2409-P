@@ -10,9 +10,43 @@ using namespace std;
 #define DOWN 's'
 
 // 전역변수들 정의
-int score = 0;                    // Score
-const int numCell = 5;            // 보드판의 가로 세로 길이 (기본 4x4)
-int board[numCell][numCell] = {}; // 게임판 초기화
+int score = 0;              // Score
+int targetNum = 10000;
+int numCell = 10;           // 최대 보드판의 가로 세로 길이 
+int board[10][10] = {};     // 게임판 초기화
+int *p0[10 * 10] = {0};
+
+int** createBoard(int size)
+{
+    int** board = new int*[size];
+    for (int i = 0; i < size; ++i)
+    {
+        board[i] = new int[size]{0};
+    }
+    return board;
+}
+// 동적 2D 배열 메모리 해제 함수
+void deleteBoard(int** board, int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+        delete[] board[i];
+    }
+    delete[] board;
+}
+
+// 동적 1D 포인터 배열 생성 함수
+int** createPointerArray(int size)
+{
+    int** p0 = new int*[size * size]{nullptr};
+    return p0;
+}
+
+// 동적 1D 포인터 배열 메모리 해제 함수
+void deletePointerArray(int** p0)
+{
+    delete[] p0;
+}
 
 // ANSI 기반 화면 관리
 void clearScreen()
@@ -43,13 +77,12 @@ void displayMenu(const string modes[], int modeCount, int selected)
 }
 
 // 사용될 함수들
-void NewNum(void); // 세부 기능 2 (랜덤 2의배수 숫자 생성)
-void NewNumOrItem(void);
-void Draw(void);            // 세부 기능 1 (3x3 게임판 만들기)
-void CheckGameOver(void); // 세부 기능 6 (게임 승리)
+void NewNum(int numCell); // 세부 기능 2 (랜덤 2의배수 숫자 생성)
+void NewNumOrItem(int numCell);
+void Draw(int targetNum,int numCell); // 세부 기능 1 (3x3 게임판 만들기)
+void CheckGameOver(int numCell); // 세부 기능 6 (게임 승리)
 void HandleItem(int &current, int &next, int i, int j, int dx, int dy, int act);
-void LevelCheckGameOver(void);
-
+void LevelCheckGameOver(int targetNum, int numCell);
 
 // 세부 기능 4 (사용자 이동기능-입력받기)
 // 단일 키 입력 받기 (getch 대체)
@@ -67,7 +100,7 @@ char GetInput()
 }
 
 // 2048 게임의 메인 루프
-void Run2048()
+void Run2048(int numCell)
 {
     // 게임을 진행하는 데 필요한 변수 선언
     int key;     // 사용자 입력 변수
@@ -75,10 +108,9 @@ void Run2048()
     int i, j, r; // 루프 변수
 
     srand(time(NULL)); // 난수생성 시드값
-    NewNum();         // 초기값 2개 생성
-    NewNum();
-
-    Draw(); // 임의의 수 2개 생성 후 게임판 그리기
+    NewNum(numCell);          // 초기값 2개 생성
+    NewNum(numCell);
+    Draw(targetNum, numCell); // 임의의 수 2개 생성 후 게임판 그리기
 
     // 게임 시작
     while (1)
@@ -225,25 +257,25 @@ void Run2048()
         // 동작 발생
         if (act > 0)
         {
-            NewNum();
-            Draw();            // 보드 출력
-            CheckGameOver(); // 게임 오버 상태 확인
+            NewNum(numCell);
+            Draw(targetNum, numCell);          // 보드 출력
+            CheckGameOver(numCell); // 게임 오버 상태 확인
         }
     }
 }
 
 void LevelSelect2048(int targetNum)
 {
-    // 게임을 진행하는 데 필요한 변수 선언
     int key;     // 사용자 입력 변수
     int act;     // 이동 변수
     int i, j, r; // 루프 변수
 
+    board[2][2] = targetNum;
     srand(time(NULL)); // 난수생성 시드값
-    NewNum();         // 초기값 2개 생성
-    NewNum();
+    NewNum(numCell);          // 초기값 2개 생성
+    NewNum(numCell);
 
-    Draw(); // 임의의 수 2개 생성 후 게임판 그리기
+    Draw(targetNum, numCell); // 임의의 수 2개 생성 후 게임판 그리기
 
     // 게임 시작
     while (1)
@@ -390,9 +422,9 @@ void LevelSelect2048(int targetNum)
         // 동작 발생
         if (act > 0)
         {
-            NewNum();
-            Draw();            // 보드 출력
-            LevelCheckGameOver();
+            NewNum(numCell);
+            Draw(targetNum, numCell); // 보드 출력
+            LevelCheckGameOver(targetNum, numCell);
         }
     }
 }
@@ -401,15 +433,15 @@ void LevelSelect2048(int targetNum)
 void RunItemMode()
 {
     // 게임을 진행하는 데 필요한 변수 선언
+    //int** board = createBoard(numCell);
     int key;     // 사용자 입력 변수
     int act;     // 이동 변수
     int i, j, r; // 루프 변수
 
     srand(time(NULL)); // 난수생성 시드값
-    NewNum();         // 초기값 2개 생성
-    NewNum();
-
-    Draw(); // 임의의 수 2개 생성 후 게임판 그리기
+    NewNum(numCell);          // 초기값 2개 생성
+    NewNum(numCell);
+    Draw(targetNum, numCell); // 임의의 수 2개 생성 후 게임판 그리기
 
     // 게임 시작
     while (1)
@@ -556,21 +588,24 @@ void RunItemMode()
         // 동작 발생
         if (act > 0)
         {
-            NewNumOrItem();
-            Draw();            // 보드 출력
-            CheckGameOver(); // 게임 오버 상태 확인
+            NewNumOrItem(numCell);
+            Draw(targetNum, numCell);          // 보드 출력
+            CheckGameOver(numCell); // 게임 오버 상태 확인
         }
     }
 }
-
 
 // 메인 함수
 int main()
 {
     const int modeCount = 4;
-    int targetNum = 32;
+    const int levelCount = 4;
+    int targetNum = 0;
+    int** board= createBoard(numCell);
+    int** p0= createPointerArray(numCell);
 
     string modes[modeCount] = {"모드 1: 2048 게임", "모드 2: 아이템 모드", "모드 3: 목표달성 모드", "모드 4: 설명서"};
+    string levels[levelCount] = {"level: easy(1024)", "level: normal(2048)", "level: hard(4096)", "back"};
 
     int selected = 0; // 선택된 모드
 
@@ -591,21 +626,101 @@ int main()
         {
             if (selected == 0)
             {
+                deleteBoard(board, numCell);    // 이전 크기로 메모리 해제
+                deletePointerArray(p0);        // 1D 포인터 배열 해제
                 clearScreen();
-                cout << "모드 1: 2048 게임을 시작합니다!" << endl;
-                Run2048(); // 2048 게임 실행
+
+                cout << "원하는 모드를 입력하시오 (3~10 + enter)" << endl;
+                cin >> numCell;
+
+                board = createBoard(numCell);
+                p0 = createPointerArray(numCell);
+                clearScreen();
+                Run2048(numCell); // 2048 게임 실행
+                deleteBoard(board, numCell);
+                deletePointerArray(p0);
+
             }
             else if (selected == 1)
             {
+                deleteBoard(board, numCell);    // 이전 크기로 메모리 해제
+                deletePointerArray(p0);        // 1D 포인터 배열 해제
                 clearScreen();
-                cout << "모드 2: 아이템 모드를 시작합니다!" << endl;
+                numCell = 4; // item모드 디폴트값 4
+                board = createBoard(numCell);
+                p0 = createPointerArray(numCell);
                 RunItemMode(); // 2048 게임 실행
+                deleteBoard(board, numCell);
+                deletePointerArray(p0);
             }
             else if (selected == 2)
             {
                 clearScreen();
                 cout << "모드 3: 목표달성 모드" << endl;
-                LevelSelect2048(targetNum); // 2048 게임 실행
+                while (true)
+                {
+                    displayMenu(levels, levelCount, selected);
+                    input = GetInput();
+                    if (input == 'w' || input == 'W')
+                    {
+                        selected = (selected - 1 + levelCount) % levelCount;
+                    }
+                    else if (input == 's' || input == 'S')
+                    {
+                        selected = (selected + 1) % levelCount;
+                    }
+                    else if (input == ' ')
+                    {
+                        if (selected == 0)
+                        {
+                            deleteBoard(board, numCell);    // 이전 크기로 메모리 해제
+                            deletePointerArray(p0);        // 1D 포인터 배열 해제
+                            clearScreen();
+
+                            targetNum = 1024;
+                            numCell = 5; // target 모드 디폴트값 5
+                            board = createBoard(numCell);
+                            p0 = createPointerArray(numCell);
+                            LevelSelect2048(targetNum);
+                            deleteBoard(board, numCell);
+                            deletePointerArray(p0);
+
+                        }
+                        else if (selected == 1)
+                        {
+                            deleteBoard(board, numCell);    // 이전 크기로 메모리 해제
+                            deletePointerArray(p0);        // 1D 포인터 배열 해제
+                            clearScreen();
+
+                            targetNum = 2048;
+                            numCell = 5; // target 모드 디폴트값 5
+                            board = createBoard(numCell);
+                            p0 = createPointerArray(numCell);
+                            LevelSelect2048(targetNum);
+                            deleteBoard(board, numCell);
+                            deletePointerArray(p0);
+                        }
+                        else if (selected == 2)
+                        {
+                            deleteBoard(board, numCell);    // 이전 크기로 메모리 해제
+                            deletePointerArray(p0);        // 1D 포인터 배열 해제
+                            clearScreen();
+
+                            targetNum = 4096;
+                            numCell = 5; // target 모드 디폴트값 5
+                            board = createBoard(numCell);
+                            p0 = createPointerArray(numCell);
+                            LevelSelect2048(targetNum);
+                            deleteBoard(board, numCell);
+                            deletePointerArray(p0);
+                        }
+
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
             }
             else if (selected == 3)
             {
@@ -643,7 +758,6 @@ int main()
             }
         }
     }
-
     return 0;
 }
 
@@ -684,11 +798,10 @@ void HandleItem(int &current, int &next, int i, int j, int dx, int dy, int act)
 }
 
 // 세부 기능 2 (랜덤 2의배수 숫자 생성)
-void NewNum(void)
+void NewNum(int numCell)
 {
     int i, j, cnt = 0;
-    int *p0[numCell * numCell] = {0}; // 포인터 배열 p0를 선언
-
+    //int *p0[numCell * numCell] = {0}; // 포인터 배열 p0를 선언
     for (i = 0; i < numCell; i++)
     {
         for (j = 0; j < numCell; j++)
@@ -706,11 +819,10 @@ void NewNum(void)
     // rand() % 100 < 80 조건을 사용해 80% 확률로 2를, 20% 확률로 4를 생성하여 선택된 빈 칸에 대입
 }
 
-void NewNumOrItem()
+void NewNumOrItem(int numCell)
 {
     int i, j, cnt = 0;
-    int *p0[numCell * numCell] = {0};
-
+    //int *p0[numCell * numCell] = {0};
     for (i = 0; i < numCell; i++)
     {
         for (j = 0; j < numCell; j++)
@@ -744,7 +856,7 @@ void NewNumOrItem()
 }
 
 // 세부 기능 1 (3x3 게임판 만들기)
-void Draw(void)
+void Draw(int targetNum,int numCell)
 {
     int i, j;
     system("clear"); // 터미널 화면을 지우는 명령어
@@ -759,11 +871,24 @@ void Draw(void)
         {
             if (board[i][j] == -1)
             {
-                cout << " J  |";
+                if (j == numCell -1){
+                    cout << " J   ";
+                }
+                else {cout << " J  |";}
             }
             else if (board[i][j] == -2)
             {
-                cout << " B  |";
+                if (j == numCell -1){
+                    cout << " B   ";
+                }
+                else {cout << " B  |";}
+            }
+            else if (board[i][j] == targetNum)
+            {
+                if (j == numCell -1){
+                    cout << "Goal ";
+                }
+                else {cout << "Goal|";}
             }
             else
             {
@@ -791,7 +916,7 @@ void Draw(void)
 }
 
 // 세부 기능 6 (게임 승리)
-void CheckGameOver(void)
+void CheckGameOver(int numCell)
 {
     int i, j;
 
@@ -827,18 +952,18 @@ void CheckGameOver(void)
     // 위 4가지 경우를 모두 충족시키지 못한 경우
     cout << "Game Over..";
     exit(0);
-
 }
 
-void LevelCheckGameOver(void)
+// 원래 의도는 target의 위치를 고정시키고 target을 병합하는 것을 승리요건으로 하려 했으나,
+// 위치를 고정하는 부분도 target 이외의 target 크기의 숫자 두 개가 합쳐져도 승리하게 되어버리는 승리조건도 구현하지 못하게 되어 많이 아쉽습니다...
+void LevelCheckGameOver(int targetNum, int numCell)
 {
     int i, j;
 
     for (i = 0; i < numCell; i++)
         for (j = 0; j < numCell; j++)
-            if (board[i][j] >= 16)
-            { // 10000을 초과하는 경우
-                cout << "16점을 돌파했습니다. 게임을 종료합니다.";
+            if (board[i][j] > targetNum) {
+                cout << targetNum <<"점을 돌파했습니다. 게임을 종료합니다."; 
                 exit(0);
             }
 
